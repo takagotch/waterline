@@ -38,6 +38,80 @@ sails lift --custom.email='foo@bar.com'
 sails lift --no-security.csrf
 
 sails lift --custom.array='[1,2,3]'
+
+// config/http.js
+module.exports.http = {
+  
+  middleware: {
+  
+  order: {
+    'cookieParser',
+    'session',
+    'passportInit',
+    'passportSession',
+    'bodyParser',
+    'compress',
+    'foobar',
+    'poweredBy',
+    'router',
+    'www',
+    'favicon',
+  },
+  
+  foobar: (function (){
+    console.log();
+    return function (req,res,next) {
+      console.log('Received HTTP request: '+req.method+' '+req.path);
+      return next();
+    };
+  })(),
+  
+  passportInit : (function () {
+    var passport = require('passport');
+    var reqResNextFn = passport.initialize();
+    return reqResNextFn;
+  })(),
+  
+  passportSession : (function () {
+    var passport = require('passport');
+    var reqResNextFn = passport.session();
+    return reqResNextFn;
+  })()
+  
+  }
+  
+};
+
+
+var auth = require('http-auth');
+var basic = auth.basic({
+  realm: 'admin area'
+}, function (username, password, onwards) {
+  return onwards(username === 'Tina' && password === 'Bullock');
+});
+
+module.exports.policies = {
+  '*': [true],
+  
+  'product/*': [auth.connect(basic)],
+  
+  'product/show': [true]
+}
+
+
+module.exports = {
+  
+  login: function(req, res) {
+    req.session.userId = foundUser.id;
+    
+    return res.json(foundUser);
+  }
+}
+
+"hooks": {
+  "session": false
+}
+
 ```
 
 
